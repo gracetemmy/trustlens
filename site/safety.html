@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Safety & Limits — TrustLens</title>
+<meta name="description" content="The model proposes, the contract disposes. How TrustLens separates probabilistic estimates from deterministic enforcement, and an honest list of what it does not claim." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+<header class="page-head ph-amber">
+  <div class="wrap">
+    <span class="eyebrow">05 · Safety & Limits</span>
+    <h1>The AI proposes. The contract disposes.</h1>
+    <p class="lead">
+      A risk model should never hold the keys. TrustLens separates what is estimated from what
+      is enforced, and the enforcement layer can always overrule the estimate.
+    </p>
+  </div>
+</header>
+
+<section>
+  <div class="wrap reveal">
+    <div class="guard">
+      <div class="guard-col">
+        <div class="guard-h">
+          <div class="ic">📈</div>
+          <div><div class="t">Model estimate</div><div class="s">probabilistic · advisory</div></div>
+        </div>
+        <ul>
+          <li><span>›</span><div><b>Risk score</b> — P(liquidation breach within 7 days)</div></li>
+          <li><span>›</span><div><b>Suggested LTV tier</b> based on that probability</div></li>
+          <li><span>›</span><div><b>Attribution</b> showing which features drove the result</div></li>
+          <li><span>›</span><div>Can be wrong. Is calibrated, measured, and bounded.</div></li>
+        </ul>
+      </div>
+      <div class="guard-col hard">
+        <div class="guard-h">
+          <div class="ic">🛡️</div>
+          <div><div class="t">Contract enforcement</div><div class="s">deterministic · binding</div></div>
+        </div>
+        <ul>
+          <li><span>✓</span><div><b>subject == msg.sender</b> — can't borrow on someone else's score</div></li>
+          <li><span>✓</span><div><b>validUntil</b> — can't score in calm markets, borrow in a crash</div></li>
+          <li><span>✓</span><div><b>single-use nonce</b> — can't replay one good score forever</div></li>
+          <li><span>✓</span><div><b>hard LTV cap + live FTSOv2 price</b> — holds even if the model is fully compromised</div></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="code">
+      <div class="code-head">TrustLensVault.sol — the model never gets the last word</div>
+      <pre><span class="k">function</span> <span class="f">borrow</span>(RiskAttestation <span class="k">calldata</span> a, <span class="k">bytes calldata</span> sig, <span class="k">uint256</span> amount) <span class="k">external</span> {
+    <span class="f">require</span>(a.subject == <span class="k">msg</span>.sender,          <span class="s">"wrong subject"</span>);
+    <span class="f">require</span>(<span class="k">block</span>.timestamp &lt;= a.validUntil, <span class="s">"expired"</span>);
+    <span class="f">require</span>(!usedNonce[a.nonce],              <span class="s">"replay"</span>);
+
+    <span class="k">address</span> signer = <span class="f">_recover</span>(a, sig);
+    <span class="f">require</span>(teeMachineRegistry.<span class="f">isRegistered</span>(extensionId, signer), <span class="s">"not a TEE signer"</span>);
+
+    <span class="c">// Deterministic guardrail — independent of anything the model said.</span>
+    <span class="k">uint16</span> ltv = a.maxLtvBps &gt; MAX_ALLOWED_LTV_BPS ? MAX_ALLOWED_LTV_BPS : a.maxLtvBps;
+    (<span class="k">uint256</span> price, ) = ftsoV2.<span class="f">getFeedByIdInWei</span>(XRP_USD);
+    <span class="f">require</span>(<span class="f">_collateralValue</span>(<span class="k">msg</span>.sender, price) * ltv / <span class="s">10000</span> &gt;= amount, <span class="s">"undercollateralised"</span>);
+
+    <span class="f">_disburse</span>(<span class="k">msg</span>.sender, amount);
+}</pre>
+    </div>
+
+    <div class="insight">
+      <div class="insight-mark">The test that matters</div>
+      <p>
+        Assume the model is completely compromised and returns PRIME for every request.
+        <b>What is the worst outcome?</b> Borrowers reach the hard cap in
+        <code>MAX_ALLOWED_LTV_BPS</code> — a level the protocol already considers survivable —
+        and every position is still checked against a live FTSOv2 price the model cannot
+        influence. A broken model costs efficiency, not solvency.
+      </p>
+    </div>
+  </div>
+</section>
+
+<section class="alt-bg">
+  <div class="wrap reveal center">
+    <span class="eyebrow">What we don't claim</span>
+    <h2>Calibration, not clairvoyance.</h2>
+    <p class="lead">
+      We don't claim to predict markets. The model answers one narrow, testable question, and we
+      report how often it's right rather than an unfalsifiable confidence number.
+    </p>
+
+    <div class="grid grid-4" style="margin-top:40px;text-align:left">
+      <div class="card">
+        <h3>Real labels</h3>
+        <p>Forward-looking liquidation-breach outcomes derived from historical XRP prices. No synthetic data.</p>
+      </div>
+      <div class="card">
+        <h3>Walk-forward</h3>
+        <p>Time-series validation, never random splits. Brier score and a reliability curve against a Monte-Carlo baseline.</p>
+      </div>
+      <div class="card">
+        <h3>Deterministic</h3>
+        <p>Inference is bit-identical in the enclave, which is what makes the pinned image hash meaningful.</p>
+      </div>
+      <div class="card">
+        <h3>Stated limits</h3>
+        <p>One asset, one 7-day horizon, not audited, not investment advice. The contract floor is what protects lenders.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap reveal">
+    <span class="eyebrow">Current status</span>
+    <h2>Where the line is today.</h2>
+    <p class="lead">
+      Judges deserve to know exactly which parts run and which are specified. Overclaiming is
+      the fastest way to lose credibility in a Q&amp;A.
+    </p>
+
+    <div class="status-list">
+      <div class="st-row done">
+        <span class="st-mark">✓</span>
+        <div><b>Live FTSOv2 reads</b><span>XRP/USD and block height pulled from Coston2 in this browser, refreshing every 15 seconds.</span></div>
+      </div>
+      <div class="st-row done">
+        <span class="st-mark">✓</span>
+        <div><b>Working risk model</b><span>Logistic scoring with real feature attribution, evaluated live against the current price.</span></div>
+      </div>
+      <div class="st-row partial">
+        <span class="st-mark">◐</span>
+        <div><b>Vault contract</b><span>Written and specified, including every guardrail above. Not yet deployed or audited.</span></div>
+      </div>
+      <div class="st-row partial">
+        <span class="st-mark">◐</span>
+        <div><b>Enclave extension</b><span>Architecture and interfaces defined against the FCC docs. The confidential compute step is simulated in this demo.</span></div>
+      </div>
+      <div class="st-row todo">
+        <span class="st-mark">○</span>
+        <div><b>Trained coefficients</b><span>Current weights are illustrative and hand-tuned. Training pipeline is designed but not yet run on full history.</span></div>
+      </div>
+    </div>
+
+    <div class="page-nav">
+      <a href="flare.html" class="btn btn-ghost">← Flare integration</a>
+      <a href="demo.html" class="btn btn-primary">Back to the live demo →</a>
+    </div>
+  </div>
+</section>
+
+<script src="js/shell.js"></script>
+</body>
+</html>

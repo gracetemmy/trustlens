@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- TrustLens logomark: a six-blade aperture, mid-open -->
+  <rect width="100" height="100" rx="22" fill="#04100f"/>
+  <circle cx="50" cy="50" r="31" fill="none" stroke="#f2a63b" stroke-width="6"/>
+  <path d="M50 17 L66 45 L34 45 Z" fill="#f2a63b"/>
+  <path d="M78 63 L46 63 L62 35 Z" fill="#f2a63b" opacity="0.55"/>
+  <path d="M22 63 L38 35 L54 63 Z" fill="#f2a63b" opacity="0.78"/>
+  <circle cx="50" cy="50" r="9" fill="#04100f"/>
+</svg>

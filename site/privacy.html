@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>How Privacy Holds — TrustLens</title>
+<meta name="description" content="Nine steps from browser to signed attestation. Where plaintext exists, who can observe it, and why the Trusted Execution Environment cannot be removed from the design." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+<header class="page-head ph-blue">
+  <div class="wrap">
+    <span class="eyebrow">03 · Privacy</span>
+    <h1>Nine steps. The lender sees step nine.</h1>
+    <p class="lead">
+      Green stages happen inside the Trusted Execution Environment, where neither the operator,
+      the relayer, nor the chain can observe them. Everything else is deliberately public.
+    </p>
+  </div>
+</header>
+
+<section>
+  <div class="wrap reveal">
+    <div class="pipeline" id="pipeline">
+      <div class="stage" data-secure="0">
+        <div class="stage-num">1</div>
+        <div class="stage-body"><div class="t">Borrower builds a position</div><div class="d">Collateral and borrow amount — public by nature</div></div>
+        <div class="stage-tag">PUBLIC</div>
+      </div>
+      <div class="stage" data-secure="0">
+        <div class="stage-num">2</div>
+        <div class="stage-body"><div class="t">Private evidence encrypted in the browser</div><div class="d">ECIES to the enclave's public key, before it ever leaves the device</div></div>
+        <div class="stage-tag">CLIENT-SIDE</div>
+      </div>
+      <div class="stage" data-secure="0">
+        <div class="stage-num">3</div>
+        <div class="stage-body"><div class="t">Instruction sent on-chain</div><div class="d">TrustLensVault calls TeeExtensionRegistry.sendInstructions()</div></div>
+        <div class="stage-tag">FLARE</div>
+      </div>
+      <div class="stage" data-secure="0">
+        <div class="stage-num">4</div>
+        <div class="stage-body"><div class="t">Data providers relay it</div><div class="d">Delivered only after 50%+ signing weight is reached</div></div>
+        <div class="stage-tag">CONSENSUS</div>
+      </div>
+      <div class="stage" data-secure="1">
+        <div class="stage-num">5</div>
+        <div class="stage-body"><div class="t">Enclave decrypts the evidence</div><div class="d">First and only point where plaintext exists</div></div>
+        <div class="stage-tag">IN TEE</div>
+      </div>
+      <div class="stage" data-secure="1">
+        <div class="stage-num">6</div>
+        <div class="stage-body"><div class="t">Verifies XRPL facts via FDC</div><div class="d">Claims become proofs — no self-reported history</div></div>
+        <div class="stage-tag">IN TEE</div>
+      </div>
+      <div class="stage" data-secure="1">
+        <div class="stage-num">7</div>
+        <div class="stage-body"><div class="t">Reads XRP/USD from FTSOv2</div><div class="d">Decentralised valuation, ~1.8s block latency</div></div>
+        <div class="stage-tag">IN TEE</div>
+      </div>
+      <div class="stage" data-secure="1">
+        <div class="stage-num">8</div>
+        <div class="stage-body"><div class="t">Scores with the hash-pinned model</div><div class="d">Weights baked into the reproducible image — unswappable</div></div>
+        <div class="stage-tag">IN TEE</div>
+      </div>
+      <div class="stage" data-secure="0">
+        <div class="stage-num">9</div>
+        <div class="stage-body"><div class="t">Signed attestation leaves the enclave</div><div class="d">{ subject, score, maxLTV, expiry, nonce } — and nothing more</div></div>
+        <div class="stage-tag">PUBLIC</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="alt-bg">
+  <div class="wrap reveal">
+    <span class="eyebrow">The design principle</span>
+    <h2>Minimum necessary exposure.</h2>
+    <p class="lead">
+      Every field belongs on exactly one side of this line, and the split is decided at design
+      time rather than left to runtime discretion.
+    </p>
+
+    <div class="split">
+      <div class="split-col public">
+        <div class="split-h"><span class="si">🌐</span> Public — because verification matters</div>
+        <ul>
+          <li>Market prices and their FTSOv2 timestamps</li>
+          <li>Collateral amount held by the vault</li>
+          <li>The resulting score and LTV cap</li>
+          <li>Attestation signature and expiry</li>
+          <li>Enclave image hash and registered signer set</li>
+        </ul>
+      </div>
+      <div class="split-col private">
+        <div class="split-h"><span class="si">🔒</span> Private — because confidentiality matters</div>
+        <ul>
+          <li>Account age and full transaction history</li>
+          <li>Off-chain reserves and portfolio size</li>
+          <li>Repayment record and prior liquidations</li>
+          <li>Personal risk thresholds and strategy</li>
+          <li>Every intermediate model feature</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="grid grid-3" style="margin-top:40px">
+      <div class="card">
+        <div class="card-icon">🔐</div>
+        <h3>Why a TEE is unavoidable</h3>
+        <p>
+          The borrower holds the data. The lending contract must act on a conclusion drawn from
+          it. Two parties, opposing incentives, no trusted middle. Delete the enclave and the
+          product doesn't degrade — it ceases to exist.
+        </p>
+      </div>
+      <div class="card">
+        <div class="card-icon">#️⃣</div>
+        <h3>The model itself is attested</h3>
+        <p>
+          An extension's on-chain code version <em>is</em> the hash of its Docker image. The
+          operator cannot silently swap in a biased model, because the hash would change and the
+          registry would reject the signature.
+        </p>
+      </div>
+      <div class="card">
+        <div class="card-icon">👁️</div>
+        <h3>What an attacker sees</h3>
+        <p>
+          A ciphertext blob of predictable length, a timestamp, and a score. Not enough to invert
+          the inputs — and the score alone is something the borrower chose to disclose.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap reveal">
+    <span class="eyebrow">Honest accounting</span>
+    <h2>What this does not protect against.</h2>
+    <p class="lead">
+      A privacy claim is only worth as much as its stated limits, so here are ours.
+    </p>
+
+    <div class="limits">
+      <div class="limit">
+        <div class="lm-k">Hardware trust</div>
+        <p>TEE guarantees rest on the silicon vendor's attestation chain. A verified break in that chain breaks this. We inherit that assumption rather than solving it — as does every confidential-computing system in production today.</p>
+      </div>
+      <div class="limit">
+        <div class="lm-k">Metadata leakage</div>
+        <p>The fact that you requested a score, and roughly when, is public. The payload is padded so its length reveals little, but timing analysis remains a real avenue.</p>
+      </div>
+      <div class="limit">
+        <div class="lm-k">The score is a disclosure</div>
+        <p>A published PRIME tier tells observers something about you. It's a single bounded fact you consciously chose to reveal, which is the point — but it isn't zero disclosure, and we won't claim it is.</p>
+      </div>
+    </div>
+
+    <div class="page-nav">
+      <a href="demo.html" class="btn btn-ghost">← Live demo</a>
+      <a href="flare.html" class="btn btn-primary">Next: why this needs Flare →</a>
+    </div>
+  </div>
+</section>
+
+<script src="js/shell.js"></script>
+<script>
+  // Pipeline stages light up sequentially once scrolled into view.
+  const pipelineObserver = new IntersectionObserver(
+    (entries) =>
+      entries.forEach((e) => {
+        if (!e.isIntersecting) return;
+        document.querySelectorAll(".stage").forEach((s, i) =>
+          setTimeout(() => {
+            s.classList.add("lit");
+            if (s.dataset.secure === "1") s.classList.add("secure");
+          }, i * 130)
+        );
+        pipelineObserver.disconnect();
+      }),
+    { threshold: 0.12 }
+  );
+  pipelineObserver.observe(document.getElementById("pipeline"));
+</script>
+</body>
+</html>

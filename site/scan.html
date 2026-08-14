@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Risk Scan — TrustLens</title>
+<meta name="description" content="Scan a contract or wallet against Flare's decentralised data and get a private, explainable risk verdict before you approve a transaction. No wallet connection, nothing transmitted." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+<header class="page-head ph-pink">
+  <div class="wrap">
+    <span class="eyebrow">Free tool · Risk Scan</span>
+    <h1>Know the risk before you sign.</h1>
+    <p class="lead">
+      Paste a contract or wallet address. TrustLens reads Flare's decentralised data, scores it,
+      and answers plainly — without your wallet or portfolio ever leaving your device.
+    </p>
+  </div>
+</header>
+
+<section class="tight">
+  <div class="wrap">
+    <div style="max-width:600px;margin:0 auto">
+      <div class="console" id="scan">
+        <div class="console-bar">
+          <svg class="lens-mark" viewBox="0 0 100 100" aria-hidden="true"><use href="#lens" /></svg>
+          <span>Risk scan</span>
+          <span class="spacer"></span>
+          <span id="scanState">idle</span>
+        </div>
+
+        <div class="console-body">
+          <form class="scan-form" id="scanForm" autocomplete="off">
+            <label for="addr" class="sr-only" style="position:absolute;left:-9999px">Contract or wallet address</label>
+            <input class="scan-input" id="addr" type="text" placeholder="0x… contract or wallet address"
+                   value="0x7a2f...c41d" spellcheck="false" />
+            <button class="scan-go" id="scanGo" type="submit">Scan</button>
+          </form>
+
+          <div class="samples">
+            <span>try:</span>
+            <button class="sample" data-case="safe" type="button">verified pool</button>
+            <button class="sample" data-case="caution" type="button">new contract</button>
+            <button class="sample" data-case="danger" type="button">honeypot</button>
+          </div>
+
+          <div class="aperture-stage">
+            <div class="aperture" id="aperture" role="img" aria-labelledby="apLabel">
+              <svg viewBox="0 0 190 190" aria-hidden="true">
+                <circle class="ap-ring" cx="95" cy="95" r="74" />
+                <circle class="ap-sweep" cx="95" cy="95" r="74" />
+                <g id="blades"></g>
+              </svg>
+              <div class="ap-idle" id="apLabel">aperture closed</div>
+              <div class="ap-core">
+                <div class="ap-score num" id="apScore">—</div>
+                <div class="ap-of">trust score</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="verdict-card" id="verdictCard">
+            <div class="vc-glyph" id="vcGlyph">—</div>
+            <div>
+              <div class="vc-title" id="vcTitle">—</div>
+              <div class="vc-note" id="vcNote">—</div>
+            </div>
+          </div>
+
+          <div class="factors" id="factors" aria-live="polite"></div>
+
+          <div class="privacy-strip">
+            <svg class="lens-mark" viewBox="0 0 100 100" style="width:13px;height:13px" aria-hidden="true"><use href="#lens" /></svg>
+            <span>Scored locally · <b>nothing about you was transmitted</b></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-meta" style="justify-content:center;margin-top:26px">
+        <span>XRP/USD <b id="statPrice">—</b> · FTSOv2</span>
+        <span>block <b id="statBlock">—</b> · Coston2</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== THE PROBLEM ==================== -->
+<section class="alt-bg">
+  <div class="wrap reveal">
+    <span class="eyebrow">What goes wrong</span>
+    <h2>Four ways people lose money signing one transaction.</h2>
+    <p class="lead">
+      None of these are exotic. They're the ordinary failure modes of an interface that
+      shows you a hex string and asks you to trust it.
+    </p>
+
+    <div class="grid grid-4" style="margin-top:40px">
+      <div class="card">
+        <div class="card-icon">◱</div>
+        <h3>Unlimited approvals</h3>
+        <p>You approve a token spend once. The allowance never expires, and months later the contract drains the balance you forgot it could touch.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">◳</div>
+        <h3>Liquidity that isn't there</h3>
+        <p>The pool shows depth. Most of it is owned by one address that can withdraw the moment you're in, leaving you holding a token you cannot sell.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">◰</div>
+        <h3>Impostor contracts</h3>
+        <p>Same name, same logo, address off by four characters. Nothing on the confirmation screen distinguishes it from the real one.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">◲</div>
+        <h3>Silent price drift</h3>
+        <p>The quoted rate diverges from every other market. Without an independent oracle to compare against, the number looks perfectly reasonable.</p>
+      </div>
+    </div>
+
+    <div class="insight">
+      <div class="insight-mark">The gap</div>
+      <p>
+        Every one of these is <b>detectable before signing</b> — the evidence is on-chain and in
+        market data. What's missing is something that reads it in the two seconds before you
+        click, and answers in words instead of metrics.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== HOW IT WORKS ==================== -->
+<section>
+  <div class="wrap reveal">
+    <span class="eyebrow">How it works</span>
+    <h2>Four steps, then an answer.</h2>
+
+    <div class="flow">
+      <div class="flow-step">
+        <div class="flow-node">1</div>
+        <h3>You supply a target</h3>
+        <p>A contract, a wallet, or a pending transaction. Nothing else is required — no connection, no signature.</p>
+      </div>
+      <div class="flow-step">
+        <div class="flow-node">2</div>
+        <h3>Flare data is gathered</h3>
+        <p>FTSOv2 for independent prices, the Data Connector for attested external facts, chain state for the contract's own history.</p>
+      </div>
+      <div class="flow-step">
+        <div class="flow-node">3</div>
+        <h3>Factors are scored</h3>
+        <p>Each risk factor is evaluated separately and weighted, so a single severe finding can't be averaged away by benign ones.</p>
+      </div>
+      <div class="flow-step">
+        <div class="flow-node">4</div>
+        <h3>You get a verdict</h3>
+        <p>Proceed, caution, or stop — with the specific reasons listed, ranked by how much each one moved the result.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== RISK ENGINE COMPOSITION ==================== -->
+<section class="alt-bg">
+  <div class="wrap reveal">
+    <span class="eyebrow">Risk engine</span>
+    <h2>What the score is made of.</h2>
+
+    <div class="compose">
+      <div class="bars" id="bars">
+        <div class="bar-row" data-w="22">
+          <div class="bar-name">Contract age &amp; verification</div>
+          <div class="bar-track"><i class="bar-fill" style="background:var(--verified)"></i></div>
+          <div class="bar-val">22%</div>
+        </div>
+        <div class="bar-row" data-w="20">
+          <div class="bar-name">Liquidity depth &amp; lock</div>
+          <div class="bar-track"><i class="bar-fill" style="background:var(--verified)"></i></div>
+          <div class="bar-val">20%</div>
+        </div>
+        <div class="bar-row" data-w="18">
+          <div class="bar-name">Holder concentration</div>
+          <div class="bar-track"><i class="bar-fill" style="background:var(--amber)"></i></div>
+          <div class="bar-val">18%</div>
+        </div>
+        <div class="bar-row" data-w="16">
+          <div class="bar-name">Permission surface</div>
+          <div class="bar-track"><i class="bar-fill" style="background:var(--amber)"></i></div>
+          <div class="bar-val">16%</div>
+        </div>
+        <div class="bar-row" data-w="14">
+          <div class="bar-name">Oracle price deviation</div>
+          <div class="bar-track"><i class="bar-fill" style="background:var(--amber)"></i></div>
+          <div class="bar-val">14%</div>
+        </div>
+        <div class="bar-row" data-w="10">
+          <div class="bar-name">Known exploit patterns</div>
+          <div class="bar-track"><i class="bar-fill" style="background:var(--alert)"></i></div>
+          <div class="bar-val">10%</div>
+        </div>
+      </div>
+
+      <div class="compose-note">
+        <h3>Weights are published, not hidden</h3>
+        <p>
+          A score you can't interrogate is just an opinion with a number attached. Every factor,
+          its weight, and its contribution to the final result are visible in the output.
+        </p>
+        <p>
+          Severe findings override the average. A contract that can mint without limit is not
+          rescued by having deep liquidity — that factor alone caps the verdict at
+          <em class="hl">stop</em>.
+        </p>
+      </div>
+    </div>
+
+    <div class="page-nav">
+      <a href="index.html" class="btn btn-ghost">← Overview</a>
+      <a href="problem.html" class="btn btn-primary">Next: the credit-scoring problem →</a>
+    </div>
+  </div>
+</section>
+
+<script src="js/shell.js"></script>
+<script src="js/scan.js"></script>
+</body>
+</html>

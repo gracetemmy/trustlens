@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Live Risk Engine — TrustLens</title>
+<meta name="description" content="A working risk engine reading live XRP/USD from FTSOv2 on Flare Coston2. Toggle private evidence and watch the credit tier change on identical collateral." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+<header class="page-head ph-green">
+  <div class="wrap">
+    <span class="eyebrow">02 · Live Risk Engine</span>
+    <h1>The third option, running right now.</h1>
+    <p class="lead">
+      Prices are read live from <b>FTSOv2 on Flare Coston2</b>, and the risk model below is the
+      same logistic scoring function that would execute inside the enclave. Nothing here is a
+      screenshot.
+    </p>
+  </div>
+</header>
+
+<section class="tight">
+  <div class="wrap">
+    <div class="try-hint">
+      <b>Try this first:</b> leave the sliders alone and toggle the four private evidence items
+      off, then back on one at a time. The signal walks from RESTRICTED to PRIME on identical
+      collateral — the only thing that changed is how much the borrower can <em>prove</em>.
+    </div>
+
+    <div class="sim">
+      <!-- ---------- controls ---------- -->
+      <div class="sim-controls">
+        <div class="sim-section-label">Public position</div>
+
+        <div class="field">
+          <div class="field-top">
+            <label for="collateral">XRP collateral</label>
+            <span class="val" id="collateralVal">12,000 XRP</span>
+          </div>
+          <input type="range" id="collateral" min="1000" max="80000" step="500" value="12000" />
+          <div class="field-hint" id="collateralUsd">valued via FTSOv2 block-latency feed</div>
+        </div>
+
+        <div class="field">
+          <div class="field-top">
+            <label for="borrow">Borrow amount</label>
+            <span class="val" id="borrowVal">$7,500</span>
+          </div>
+          <input type="range" id="borrow" min="500" max="60000" step="250" value="7500" />
+          <div class="field-hint" id="ltvHint">loan-to-value: —</div>
+        </div>
+
+        <div class="field">
+          <div class="field-top">
+            <label for="vol">Market volatility (annualised)</label>
+            <span class="val" id="volVal">65%</span>
+          </div>
+          <input type="range" id="vol" min="20" max="180" step="5" value="65" />
+          <div class="field-hint">drag toward 180% to simulate a market crash</div>
+        </div>
+
+        <div class="sim-section-label" style="margin-top:32px">
+          Private evidence <span style="color:var(--prime);letter-spacing:0">🔒</span>
+        </div>
+        <p style="font-size:0.82rem;margin-bottom:15px">
+          Encrypted to the enclave's public key. The lender never sees these.
+        </p>
+
+        <div class="evidence" id="evidence">
+          <div class="ev" data-w="0.9" data-k="history">
+            <div class="ev-box"></div>
+            <div class="ev-text">
+              <div class="t">Long XRPL account history</div>
+              <div class="d">8+ years, FDC-attested</div>
+            </div>
+            <div class="ev-lock">ENCRYPTED</div>
+          </div>
+          <div class="ev" data-w="1.1" data-k="clean">
+            <div class="ev-box"></div>
+            <div class="ev-text">
+              <div class="t">Zero prior liquidations</div>
+              <div class="d">across all tracked positions</div>
+            </div>
+            <div class="ev-lock">ENCRYPTED</div>
+          </div>
+          <div class="ev" data-w="0.75" data-k="reserves">
+            <div class="ev-box"></div>
+            <div class="ev-text">
+              <div class="t">Off-chain reserves</div>
+              <div class="d">3× the borrowed amount</div>
+            </div>
+            <div class="ev-lock">ENCRYPTED</div>
+          </div>
+          <div class="ev" data-w="0.6" data-k="repay">
+            <div class="ev-box"></div>
+            <div class="ev-text">
+              <div class="t">Consistent repayment record</div>
+              <div class="d">24 months, no arrears</div>
+            </div>
+            <div class="ev-lock">ENCRYPTED</div>
+          </div>
+        </div>
+
+        <button class="btn btn-primary" id="analyzeBtn" style="width:100%;justify-content:center;margin-top:22px">
+          Analyze privately
+        </button>
+      </div>
+
+      <!-- ---------- output ---------- -->
+      <div class="sim-output">
+        <div class="sim-section-label">Signal</div>
+
+        <div class="signal-stage">
+          <div class="beacon">
+            <div class="lamp" data-l="prime"></div>
+            <div class="lamp" data-l="strong"></div>
+            <div class="lamp" data-l="standard"></div>
+            <div class="lamp" data-l="restricted"></div>
+          </div>
+
+          <div class="gauge-wrap">
+            <div class="gauge">
+              <svg width="148" height="148" viewBox="0 0 148 148">
+                <circle class="gauge-track" cx="74" cy="74" r="62"></circle>
+                <circle class="gauge-fill" id="gaugeFill" cx="74" cy="74" r="62"
+                        stroke-dasharray="389.6" stroke-dashoffset="389.6"></circle>
+              </svg>
+              <div class="gauge-center">
+                <div class="num" id="scoreNum">—</div>
+                <div class="lbl">risk score</div>
+              </div>
+            </div>
+
+            <div class="verdict">
+              <div class="tier-badge" id="tierBadge" style="color:var(--text-faint);border:1px solid var(--line)">
+                <span class="tb-dot"></span><span id="tierText">AWAITING INPUT</span>
+              </div>
+              <div class="ltv-line">Maximum approved LTV</div>
+              <div class="ltv-big" id="ltvBig">—</div>
+              <div class="ltv-sub" id="ltvSub">collateral requirement —</div>
+              <div class="cap-eff" id="capEff"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="sim-section-label">
+          Why — model attribution
+          <span title="Contribution to log-odds. Negative reduces risk." style="cursor:help;color:var(--text-faint)">ⓘ</span>
+        </div>
+        <div class="reasons" id="reasons"></div>
+
+        <div class="trace" id="trace"></div>
+
+        <div class="blob-label">
+          <span>ENCRYPTED PRIVATE PAYLOAD (as submitted on-chain)</span>
+          <span id="blobSize">0 bytes</span>
+        </div>
+        <div class="blob" id="blob">—</div>
+      </div>
+    </div>
+
+    <p class="fineprint">
+      Demonstration model with illustrative coefficients. Production weights are trained on
+      historical XRP data with walk-forward validation and pinned to the enclave image hash.
+    </p>
+  </div>
+</section>
+
+<section class="alt-bg">
+  <div class="wrap reveal">
+    <span class="eyebrow">What just happened</span>
+    <h2>Reading the output.</h2>
+
+    <div class="grid grid-3" style="margin-top:34px">
+      <div class="card">
+        <div class="card-icon">🎯</div>
+        <h3>The score</h3>
+        <p>
+          Probability that this position breaches its liquidation threshold within seven days.
+          One narrow, falsifiable question — not a vague "risk rating" that can never be wrong.
+        </p>
+      </div>
+      <div class="card">
+        <div class="card-icon">📊</div>
+        <h3>The attribution</h3>
+        <p>
+          Each row is a real feature contribution to the model's log-odds, sorted by magnitude
+          and regenerated on every change. It isn't written copy — move a slider and watch the
+          ordering rearrange itself.
+        </p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🔒</div>
+        <h3>The payload</h3>
+        <p>
+          What the chain actually sees of your private evidence: an opaque blob. The score and
+          LTV cap come back signed; the inputs never leave the enclave.
+        </p>
+      </div>
+    </div>
+
+    <div class="tier-table">
+      <div class="tt-head"><span>Signal</span><span>Breach probability</span><span>Max LTV</span><span>Collateral</span></div>
+      <div class="tt-row"><span class="tt-tier t-prime">● PRIME</span><span>≤ 2%</span><span>83%</span><span>120%</span></div>
+      <div class="tt-row"><span class="tt-tier t-strong">● STRONG</span><span>≤ 5%</span><span>75%</span><span>133%</span></div>
+      <div class="tt-row"><span class="tt-tier t-standard">● STANDARD</span><span>≤ 12%</span><span>67%</span><span>150%</span></div>
+      <div class="tt-row"><span class="tt-tier t-restricted">● RESTRICTED</span><span>&gt; 12%</span><span>50%</span><span>200%</span></div>
+    </div>
+
+    <p style="margin-top:20px;font-size:0.9rem">
+      STANDARD is deliberately pinned at today's typical 150% requirement. TrustLens doesn't
+      make lending looser — it makes it <em>differentiated</em>, and an unproven borrower still
+      lands exactly where they'd be today or worse.
+    </p>
+
+    <div class="page-nav">
+      <a href="problem.html" class="btn btn-ghost">← The problem</a>
+      <a href="privacy.html" class="btn btn-primary">Next: how the secret stays secret →</a>
+    </div>
+  </div>
+</section>
+
+<script src="js/shell.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

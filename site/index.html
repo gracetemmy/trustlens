@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>TrustLens — Know the risk before you sign</title>
+<meta name="description" content="TrustLens scans a contract or wallet against Flare's decentralised data and returns a private, explainable risk verdict before you approve a transaction." />
+<link rel="icon" href="favicon.svg" type="image/svg+xml" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+<!-- ==================== HERO ==================== -->
+<header class="hero" id="top">
+  <svg class="hero-field" viewBox="0 0 780 780" aria-hidden="true" focusable="false">
+    <g class="spin">
+      <circle class="r1" cx="390" cy="390" r="182" stroke-dasharray="3 13" />
+      <circle cx="390" cy="390" r="248" stroke-dasharray="1 17" opacity="0.5" />
+    </g>
+    <circle cx="390" cy="390" r="312" stroke-dasharray="1 9" opacity="0.3" />
+    <circle cx="390" cy="390" r="376" stroke-dasharray="1 7" opacity="0.16" />
+  </svg>
+
+  <div class="wrap hero-grid">
+    <div>
+      <span class="pill">
+        <svg class="lens-mark" viewBox="0 0 100 100" aria-hidden="true"><use href="#lens" /></svg>
+        Flare Summer Signal
+      </span>
+
+      <h1>Know the risk <em class="hl">before</em> you sign.</h1>
+
+      <p class="hero-sub">
+        TrustLens inspects the contract you're about to approve, scores it against
+        decentralised data on Flare, and tells you plainly whether to proceed —
+        without your wallet or portfolio ever leaving your control.
+      </p>
+
+      <div class="hero-actions">
+        <a href="scan.html" class="btn btn-primary btn-lg">Scan an address</a>
+        <a href="demo.html" class="btn btn-ghost btn-lg">See the credit engine</a>
+      </div>
+
+      <div class="hero-meta">
+        <span>XRP/USD <b id="statPrice">—</b> · FTSOv2</span>
+        <span>block <b id="statBlock">—</b> · Coston2</span>
+        <span><b>0</b> private fields published</span>
+      </div>
+    </div>
+
+    <!-- ---------- Where things stand — live, not a slide ---------- -->
+    <div class="console">
+      <div class="console-bar">
+        <svg class="lens-mark" viewBox="0 0 100 100" aria-hidden="true"><use href="#lens" /></svg>
+        <span>Where things stand</span>
+        <span class="spacer"></span>
+        <span style="color:var(--verified)">honest, not hyped</span>
+      </div>
+
+      <div class="console-body">
+        <div class="status-list" style="margin-top:0">
+          <div class="st-row done">
+            <span class="st-mark">✓</span>
+            <div><b>Live FTSOv2 reads</b><span>Real XRP/USD on Coston2, refreshed every 15s</span></div>
+          </div>
+          <div class="st-row done">
+            <span class="st-mark">✓</span>
+            <div><b>Working risk engine</b><span>Live scoring and feature attribution, not a mockup</span></div>
+          </div>
+          <div class="st-row partial">
+            <span class="st-mark">◐</span>
+            <div><b>Vault contract &amp; enclave</b><span>Fully designed, shown as code — not deployed yet</span></div>
+          </div>
+          <div class="st-row todo">
+            <span class="st-mark">○</span>
+            <div><b>Trained model</b><span>Coefficients are illustrative, not yet fit to history</span></div>
+          </div>
+        </div>
+        <p style="margin-top:16px;font-size:0.82rem">
+          <a href="safety.html" style="color:var(--amber)">Full status and guardrails →</a>
+        </p>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ==================== CONTEXT + CTA ==================== -->
+<section class="alt-bg">
+  <div class="wrap reveal">
+    <span class="eyebrow">Project context</span>
+    <h2>Built for Flare Summer Signal.</h2>
+
+    <div class="ctx">
+      <div class="ctx-card">
+        <div class="ctx-k">Track</div>
+        <div class="ctx-v">Confidential Compute — private scoring with on-chain enforcement</div>
+      </div>
+      <div class="ctx-card">
+        <div class="ctx-k">Live today</div>
+        <div class="ctx-v">FTSOv2 reads on Coston2 · working risk model · client-side scan</div>
+      </div>
+      <div class="ctx-card">
+        <div class="ctx-k">Specified</div>
+        <div class="ctx-v">Enclave extension and vault contract — <a href="safety.html">status is documented</a></div>
+      </div>
+      <div class="ctx-card">
+        <div class="ctx-k">Why we built it</div>
+        <div class="ctx-v">Every honest borrower subsidises the anonymous ones. That's a solvable data problem.</div>
+      </div>
+    </div>
+
+    <div class="cta-band" style="margin-top:44px">
+      <h2>Get the scan before your next approval.</h2>
+      <p class="lead" style="font-size:1rem">
+        We'll send one message when the extension is live on Coston2. Nothing else.
+      </p>
+      <form class="cta-form" id="waitForm" autocomplete="off">
+        <label for="email" style="position:absolute;left:-9999px">Email address</label>
+        <input id="email" type="email" placeholder="you@domain.com" required />
+        <button class="btn btn-primary" type="submit">Join waitlist</button>
+      </form>
+      <div class="cta-note" id="waitNote">No wallet connection. No tracking pixels.</div>
+    </div>
+  </div>
+</section>
+
+<!-- The #lens sprite is injected by shell.js so all pages share one definition. -->
+<script src="js/shell.js"></script>
+</body>
+</html>

@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>The Problem — TrustLens</title>
+<meta name="description" content="Why DeFi lending gives an eight-year holder and a ten-minute-old wallet identical terms, and why publishing your balance sheet or trusting a credit bureau both fail." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+<header class="page-head ph-pink">
+  <div class="wrap">
+    <span class="eyebrow">01 · The Problem</span>
+    <h1>Two borrowers. Identical terms.</h1>
+    <p class="lead">
+      A lending protocol cannot tell these wallets apart, because the only thing that would
+      distinguish them is information no sane person publishes on a transparent chain.
+    </p>
+  </div>
+</header>
+
+<section>
+  <div class="wrap reveal">
+    <div class="versus">
+      <div class="wallet">
+        <div class="wallet-head">
+          <div class="avatar good">◆</div>
+          <div>
+            <div class="n">Established holder</div>
+            <div class="s">rN7n…8Kx2</div>
+          </div>
+        </div>
+        <ul>
+          <li><span>✓</span> 8 years of XRPL settlement history</li>
+          <li><span>✓</span> Zero liquidations, ever</li>
+          <li><span>✓</span> Large verifiable off-chain portfolio</li>
+          <li><span>✓</span> Consistent repayment record</li>
+        </ul>
+        <div class="wallet-verdict">
+          <div class="l">Required collateral</div>
+          <div class="v" style="color:var(--restricted)">150%</div>
+        </div>
+      </div>
+
+      <div class="versus-mid"><span>identical</span></div>
+
+      <div class="wallet">
+        <div class="wallet-head">
+          <div class="avatar bad">?</div>
+          <div>
+            <div class="n">Fresh wallet</div>
+            <div class="s">rQ4z…1Ab9</div>
+          </div>
+        </div>
+        <ul>
+          <li><span>—</span> Created 10 minutes ago</li>
+          <li><span>—</span> No history of any kind</li>
+          <li><span>—</span> No verifiable assets</li>
+          <li><span>—</span> Unknown counterparty</li>
+        </ul>
+        <div class="wallet-verdict">
+          <div class="l">Required collateral</div>
+          <div class="v" style="color:var(--restricted)">150%</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="punch">
+      On a <b>$100,000</b> loan, that gap is <b>$30,000 of capital sitting idle</b> — not because
+      the borrower is risky, but because the protocol has no safe way to learn that they aren't.
+    </div>
+  </div>
+</section>
+
+<section class="alt-bg">
+  <div class="wrap reveal">
+    <span class="eyebrow">Why it stays broken</span>
+    <h2>Both existing answers are bad.</h2>
+    <p class="lead">
+      This isn't an oversight nobody noticed. It's a genuine dilemma, and the two available
+      escapes each destroy something essential.
+    </p>
+
+    <div class="grid grid-2" style="margin-top:36px">
+      <div class="card fail">
+        <div class="card-icon">📢</div>
+        <h3>Option A — publish everything</h3>
+        <p>
+          Put your balance sheet on a public chain and every competitor, front-runner and
+          liquidation bot can read your position in real time. Your borrowing capacity becomes
+          a map of exactly where to squeeze you.
+        </p>
+        <div class="fail-tag">Nobody does this, and they're right not to.</div>
+      </div>
+
+      <div class="card fail">
+        <div class="card-icon">🏦</div>
+        <h3>Option B — trust a credit bureau</h3>
+        <p>
+          Hand your financial history to a centralised scorer and you've rebuilt TradFi: an
+          opaque database, an unauditable model, a single breach away from catastrophe, and a
+          gatekeeper who can quietly decide you're not worth lending to.
+        </p>
+        <div class="fail-tag">Solves privacy from the public, not from the scorer.</div>
+      </div>
+    </div>
+
+    <div class="insight">
+      <div class="insight-mark">The gap</div>
+      <p>
+        The borrower holds data the lender needs. The lender must act on a conclusion drawn
+        from that data. Neither party can safely hand the other what they have — so the
+        protocol defaults to treating everyone like the riskiest possible counterparty.
+        <b>That default is the tax every honest borrower pays.</b>
+      </p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap reveal">
+    <span class="eyebrow">Not a niche complaint</span>
+    <h2>The cost, in numbers.</h2>
+
+    <div class="stat-row">
+      <div class="stat-card">
+        <div class="sv">150%+</div>
+        <div class="sk">Typical DeFi collateral requirement, applied uniformly regardless of borrower quality</div>
+      </div>
+      <div class="stat-card">
+        <div class="sv">~33%</div>
+        <div class="sk">Of posted collateral immobilised purely by the protocol's inability to distinguish borrowers</div>
+      </div>
+      <div class="stat-card">
+        <div class="sv">0</div>
+        <div class="sk">Credit history that carries over when you arrive with a fresh wallet</div>
+      </div>
+    </div>
+
+    <p class="lead" style="margin-top:34px">
+      Traditional finance solved differentiated pricing centuries ago — by building institutions
+      that hold your secrets. DeFi removed the institutions and lost the differentiation with them.
+      TrustLens is an attempt to get it back without bringing the institutions along.
+    </p>
+
+    <div class="page-nav">
+      <a href="index.html" class="btn btn-ghost">← Home</a>
+      <a href="demo.html" class="btn btn-primary">Next: see the alternative running →</a>
+    </div>
+  </div>
+</section>
+
+<script src="js/shell.js"></script>
+</body>
+</html>

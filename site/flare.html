@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Built on Flare — TrustLens</title>
+<meta name="description" content="Confidential Compute, FTSOv2, the Flare Data Connector and FAssets — four primitives, each load-bearing. Remove any one and TrustLens stops working." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+<header class="page-head ph-purple">
+  <div class="wrap">
+    <span class="eyebrow">04 · Flare Integration</span>
+    <h1>Four primitives. Remove any one and it breaks.</h1>
+    <p class="lead">
+      TrustLens needs an oracle, an external-data prover, a confidential runtime and an EVM to
+      enforce the outcome. Flare is the only network shipping all four as first-class primitives,
+      which is why this is a Flare product rather than a product that happens to deploy here.
+    </p>
+  </div>
+</header>
+
+<section>
+  <div class="wrap reveal">
+    <div class="flare-row">
+      <div class="flare-name">Confidential Compute<span class="tag">FCC · TEE</span></div>
+      <div>
+        <p>
+          Hosts the scoring extension as a Go service in a hardware-isolated enclave and signs
+          results with a registered TEE identity. This is the only reason a lender can trust a
+          score computed over data it cannot see. Contracts verify the signature with
+          <code>ecrecover</code> against the machine registry.
+        </p>
+        <div class="removed">Remove it → private evidence has nowhere safe to be processed. No product.</div>
+      </div>
+    </div>
+
+    <div class="flare-row">
+      <div class="flare-name">FTSOv2<span class="tag">ORACLE</span></div>
+      <div>
+        <p>
+          Live XRP/USD from ~100 independent providers, updating roughly every 1.8 seconds. Used
+          deliberately <b>twice, in two separate trust domains</b>: as a model input inside the
+          enclave, and again inside the contract as an independent collateral floor that the
+          model cannot influence.
+        </p>
+        <div class="removed">Remove it → collateral valuation depends on a centralised API the lender must trust.</div>
+      </div>
+    </div>
+
+    <div class="flare-row">
+      <div class="flare-name">Data Connector<span class="tag">FDC</span></div>
+      <div>
+        <p>
+          Attests XRP Ledger facts — account age, payment history, proven payments — so credit
+          history becomes provable rather than self-reported. The enclave verifies proofs rather
+          than believing claims.
+        </p>
+        <div class="removed">Remove it → a borrower simply invents the evidence that earns a better rate.</div>
+      </div>
+    </div>
+
+    <div class="flare-row">
+      <div class="flare-name">FAssets<span class="tag">FXRP</span></div>
+      <div>
+        <p>
+          Brings XRP — an asset with no native smart contracts — into a programmable lending
+          position on an EVM chain. This is the collateral being underwritten, and the reason
+          the use case exists on Flare specifically.
+        </p>
+        <div class="removed">Remove it → XRP holders can't borrow against XRP without a custodial bridge.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="alt-bg">
+  <div class="wrap reveal">
+    <span class="eyebrow">Verified, not assumed</span>
+    <h2>The integration details that actually bite.</h2>
+    <p class="lead">
+      These are the specifics we checked against a live Coston2 node rather than copying from a
+      blog post — the small things that quietly corrupt collateral maths.
+    </p>
+
+    <div class="code">
+      <div class="code-head"><span class="dot" style="background:var(--flare-pink)"></span> verified live against Coston2 · chain 114</div>
+      <pre><span class="c">// FtsoV2 on Coston2</span>
+<span class="k">const</span> FTSOV2 = <span class="s">"0x3d893C53D9e8056135C26C8c638B76C8b60Df726"</span>;
+
+<span class="c">// Feed ID = 0x01 (crypto category) + ASCII name, right-padded to 21 bytes</span>
+<span class="k">const</span> XRP_USD = <span class="s">"0x015852502f55534400000000000000000000000000"</span>;
+
+<span class="k">const</span> [value, decimals, timestamp] = <span class="k">await</span> ftsoV2.<span class="f">getFeedById</span>(XRP_USD);
+
+<span class="c">// Careful: decimals differ per feed. XRP=6, BTC=2, FLR=8.</span>
+<span class="c">// Assuming 18 is the classic way to corrupt collateral maths.</span></pre>
+    </div>
+
+    <div class="grid grid-3" style="margin-top:34px">
+      <div class="card">
+        <div class="card-icon">🔢</div>
+        <h3>Per-feed decimals</h3>
+        <p>Returned as a signed <code>int8</code> that varies by feed and can change. Hardcoding 18 silently misprices collateral by orders of magnitude.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">⏱️</div>
+        <h3>Staleness checks</h3>
+        <p>The feed returns a timestamp for a reason. A price that stopped updating during a crash is worse than no price, so the vault rejects stale reads.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">✍️</div>
+        <h3>Signer registry</h3>
+        <p>The vault accepts an attestation only if the recovered signer is currently registered for the pinned extension ID. Rotation is handled on-chain.</p>
+      </div>
+    </div>
+
+    <div class="page-nav">
+      <a href="privacy.html" class="btn btn-ghost">← Privacy</a>
+      <a href="safety.html" class="btn btn-primary">Next: guardrails and limits →</a>
+    </div>
+  </div>
+</section>
+
+<script src="js/shell.js"></script>
+</body>
+</html>
